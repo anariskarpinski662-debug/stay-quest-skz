@@ -1,0 +1,49 @@
+name: STAY QUEST APK
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pobierz pliki
+        uses: actions/checkout@v6
+
+      - name: Rozpakuj gre
+        run: unzip -q STAY_QUEST_DO_GITHUB.zip -d source
+
+      - name: Przygotuj Jave
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Przygotuj Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: "9.4.1"
+
+      - name: Przygotuj Androida
+        uses: android-actions/setup-android@v4
+
+      - name: Pobierz skladniki Androida
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Zbuduj aplikacje
+        run: gradle -p source/android :app:assembleDebug --no-daemon
+
+      - name: Nadaj nazwe
+        run: mv source/android/app/build/outputs/apk/debug/app-debug.apk STAY_QUEST.apk
+
+      - name: Gotowa aplikacja
+        uses: actions/upload-artifact@v4
+        with:
+          name: STAY-QUEST-APK
+          path: STAY_QUEST.apk
+          if-no-files-found: error
